@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "928020478915",
+    "firebase_url": "https://micq-8609c-default-rtdb.firebaseio.com",
+    "project_id": "micq-8609c",
+    "storage_bucket": "micq-8609c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:928020478915:android:0746d83fdcb25f4e235b76",
+        "android_client_info": {
+          "package_name": "com.eman.micq"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRUZsa3Pw7lI716mmKunxHwPPAQGzCpAs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
