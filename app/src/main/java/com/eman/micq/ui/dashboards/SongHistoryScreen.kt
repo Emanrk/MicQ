@@ -18,7 +18,9 @@ import com.eman.micq.viewmodel.SongHistoryViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+import androidx.compose.ui.tooling.preview.Preview
+import com.eman.micq.ui.theme.MicQTheme
+
 @Composable
 fun SongHistoryScreen(
     onNavigateBack: () -> Unit,
@@ -26,9 +28,18 @@ fun SongHistoryScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // The ViewModel init now calls loadHistory() automatically 
-    // for the logged-in user.
+    SongHistoryContent(
+        uiState = uiState,
+        onNavigateBack = onNavigateBack
+    )
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SongHistoryContent(
+    uiState: SongHistoryState,
+    onNavigateBack: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -125,5 +136,33 @@ fun SongHistoryItem(entry: QueueItem) {
                 color = MaterialTheme.colorScheme.outline
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SongHistoryScreenPreview() {
+    val fakeEntries = listOf(
+        QueueItem(
+            id = "1",
+            firstName = "Sarah",
+            lastName = "Jenkins",
+            songName = "I Will Always Love You",
+            completedAt = System.currentTimeMillis() - 3600000
+        ),
+        QueueItem(
+            id = "2",
+            firstName = "John",
+            lastName = "Smith",
+            songName = "Wonderwall",
+            completedAt = System.currentTimeMillis() - 7200000
+        )
+    )
+
+    MicQTheme {
+        SongHistoryContent(
+            uiState = SongHistoryState.Success(fakeEntries),
+            onNavigateBack = {}
+        )
     }
 }

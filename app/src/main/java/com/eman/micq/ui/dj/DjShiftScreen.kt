@@ -12,9 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
+import com.eman.micq.ui.theme.MicQTheme
+import com.eman.micq.viewmodel.DjUiState
 import com.eman.micq.viewmodel.DjViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DjShiftScreen(
     viewModel: DjViewModel,
@@ -23,6 +25,24 @@ fun DjShiftScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    DjShiftContent(
+        uiState = uiState,
+        onStartShift = { viewModel.startShift() },
+        onEndShift = { viewModel.endShift() },
+        onNavigateToDashboard = onNavigateToDashboard,
+        onLogout = onLogout
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DjShiftContent(
+    uiState: DjUiState,
+    onStartShift: () -> Unit,
+    onEndShift: () -> Unit,
+    onNavigateToDashboard: () -> Unit,
+    onLogout: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -55,7 +75,7 @@ fun DjShiftScreen(
                     modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
                 )
                 Button(
-                    onClick = { viewModel.startShift() },
+                    onClick = onStartShift,
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     shape = MaterialTheme.shapes.medium
                 ) {
@@ -88,7 +108,7 @@ fun DjShiftScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 OutlinedButton(
-                    onClick = { viewModel.endShift() },
+                    onClick = onEndShift,
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
@@ -103,5 +123,41 @@ fun DjShiftScreen(
                 CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DjShiftScreenActivePreview() {
+    MicQTheme {
+        DjShiftContent(
+            uiState = DjUiState(
+                activeShift = com.eman.micq.data.model.DjShift(
+                    id = "1",
+                    djId = "dj1",
+                    djName = "DJ Mike",
+                    startTime = System.currentTimeMillis()
+                ),
+                elapsedTime = "01:22:45"
+            ),
+            onStartShift = {},
+            onEndShift = {},
+            onNavigateToDashboard = {},
+            onLogout = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DjShiftScreenIdlePreview() {
+    MicQTheme {
+        DjShiftContent(
+            uiState = DjUiState(activeShift = null),
+            onStartShift = {},
+            onEndShift = {},
+            onNavigateToDashboard = {},
+            onLogout = {}
+        )
     }
 }

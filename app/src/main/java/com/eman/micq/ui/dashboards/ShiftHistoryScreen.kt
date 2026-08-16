@@ -20,7 +20,9 @@ import com.eman.micq.viewmodel.ShiftHistoryViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+import androidx.compose.ui.tooling.preview.Preview
+import com.eman.micq.ui.theme.MicQTheme
+
 @Composable
 fun ShiftHistoryScreen(
     onNavigateBack: () -> Unit,
@@ -28,6 +30,18 @@ fun ShiftHistoryScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    ShiftHistoryContent(
+        uiState = uiState,
+        onNavigateBack = onNavigateBack
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ShiftHistoryContent(
+    uiState: ShiftHistoryState,
+    onNavigateBack: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -125,5 +139,33 @@ fun ShiftItem(shift: DjShift) {
                 color = MaterialTheme.colorScheme.secondary
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ShiftHistoryScreenPreview() {
+    val fakeShifts = listOf(
+        DjShift(
+            id = "1",
+            djId = "dj1",
+            djName = "DJ Mike",
+            startTime = System.currentTimeMillis() - 14400000,
+            endTime = System.currentTimeMillis() - 7200000
+        ),
+        DjShift(
+            id = "2",
+            djId = "dj1",
+            djName = "DJ Mike",
+            startTime = System.currentTimeMillis() - 86400000,
+            endTime = System.currentTimeMillis() - 79200000
+        )
+    )
+
+    MicQTheme {
+        ShiftHistoryContent(
+            uiState = ShiftHistoryState.Success(fakeShifts),
+            onNavigateBack = {}
+        )
     }
 }

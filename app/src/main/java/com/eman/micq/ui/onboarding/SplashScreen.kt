@@ -15,21 +15,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 import com.eman.micq.ui.theme.MicQHeroGradient
+import com.eman.micq.ui.theme.MicQTheme
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(onSplashFinished: () -> Unit) {
+    LaunchedEffect(Unit) {
+        delay(2000) // 2 second splash
+        onSplashFinished()
+    }
+
+    SplashContent()
+}
+
+@Composable
+fun SplashContent() {
     val scale by animateFloatAsState(
         targetValue = 1.2f,
         animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
         label = "LogoScale"
     )
-
-    LaunchedEffect(Unit) {
-        delay(2000) // 2 second splash
-        onSplashFinished()
-    }
 
     Box(
         modifier = Modifier
@@ -61,5 +68,13 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SplashScreenPreview() {
+    MicQTheme {
+        SplashContent()
     }
 }

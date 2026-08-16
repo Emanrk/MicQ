@@ -27,7 +27,9 @@ import com.eman.micq.viewmodel.ShiftActivity
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+import androidx.compose.ui.tooling.preview.Preview
+import com.eman.micq.ui.theme.MicQTheme
+
 @Composable
 fun AdminDashboardScreen(
     onNavigateToShiftHistory: () -> Unit,
@@ -36,12 +38,28 @@ fun AdminDashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    AdminDashboardContainer(
+        uiState = uiState,
+        onRefresh = { viewModel.loadActivity() },
+        onNavigateToShiftHistory = onNavigateToShiftHistory,
+        onLogout = onLogout
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AdminDashboardContainer(
+    uiState: AdminActivityState,
+    onRefresh: () -> Unit,
+    onNavigateToShiftHistory: () -> Unit,
+    onLogout: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Admin Console") },
                 actions = {
-                    IconButton(onClick = { viewModel.loadActivity() }) {
+                    IconButton(onClick = onRefresh) {
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
                     IconButton(onClick = onNavigateToShiftHistory) {
@@ -269,5 +287,59 @@ fun DjActivityCard(activity: ShiftActivity) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AdminDashboardScreenPreview() {
+    val fakeActivities = listOf(
+        ShiftActivity(
+            shift = DjShift(
+                id = "1",
+                djId = "dj1",
+                djName = "DJ Mike",
+                startTime = System.currentTimeMillis() - 3600000,
+                lastActiveAt = System.currentTimeMillis() - 60000
+            ),
+            songCount = 12
+        ),
+        ShiftActivity(
+            shift = DjShift(
+                id = "2",
+                djId = "dj2",
+                djName = "DJ Sarah",
+                startTime = System.currentTimeMillis() - 7200000,
+                endTime = System.currentTimeMillis() - 3600000,
+                lastActiveAt = System.currentTimeMillis() - 3600000
+            ),
+            songCount = 25
+        )
+    )
+
+    val fakeLoyalty = listOf(
+        SingerLoyalty(
+            firstName = "John",
+            lastName = "Doe",
+            preferredName = "Johnny Karaoke",
+            visitCount = 15,
+            lastVisitTimestamp = System.currentTimeMillis() - 86400000
+        ),
+        SingerLoyalty(
+            firstName = "Alice",
+            lastName = "Smith",
+            preferredName = "",
+            visitCount = 8,
+            lastVisitTimestamp = System.currentTimeMillis() - 172800000
+        )
+    )
+
+    MicQTheme {
+        AdminDashboardContainer(
+            uiState = AdminActivityState.Success(fakeActivities, fakeLoyalty),
+            onRefresh = {},
+            onNavigateToShiftHistory = {},
+            onLogout = {}
+        )
     }
 }

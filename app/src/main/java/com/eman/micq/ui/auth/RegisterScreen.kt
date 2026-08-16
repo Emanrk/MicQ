@@ -9,10 +9,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
+import com.eman.micq.ui.theme.MicQTheme
 import com.eman.micq.viewmodel.AuthState
 import com.eman.micq.viewmodel.AuthViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     role: String,
@@ -20,11 +21,35 @@ fun RegisterScreen(
     onNavigateBack: () -> Unit,
     onRegistrationSuccess: () -> Unit
 ) {
+    val authState by viewModel.authState.collectAsState()
+
+    RegisterContent(
+        role = role,
+        authState = authState,
+        onNavigateBack = onNavigateBack,
+        onRegister = { name, email, password ->
+            viewModel.register(name, email, password, role)
+        }
+    )
+
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Authenticated) {
+            onRegistrationSuccess()
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RegisterContent(
+    role: String,
+    authState: AuthState,
+    onNavigateBack: () -> Unit,
+    onRegister: (String, String, String) -> Unit
+) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    
-    val authState by viewModel.authState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -85,7 +110,7 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(32.dp))
             
             Button(
-                onClick = { viewModel.register(name, email, password, role) },
+                onClick = { onRegister(name, email, password) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 enabled = authState !is AuthState.Loading,
                 shape = MaterialTheme.shapes.medium
@@ -96,12 +121,19 @@ fun RegisterScreen(
             if (authState is AuthState.Loading) {
                 CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
             }
-
-            LaunchedEffect(authState) {
-                if (authState is AuthState.Authenticated) {
-                    onRegistrationSuccess()
-                }
-            }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RegisterScreenPreview() {
+    MicQTheme {
+        RegisterContent(
+            role = "DJ",
+            authState = AuthState.Idle,
+            onNavigateBack = {},
+            onRegister = { _, _, _ -> }
+        )
     }
 }
