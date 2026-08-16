@@ -46,11 +46,19 @@ fun RegisterScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Text(
+                text = "Join the Team",
+                style = MaterialTheme.typography.displayLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Full Name") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
             )
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -59,7 +67,8 @@ fun RegisterScreen(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email Address") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
             )
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -69,17 +78,19 @@ fun RegisterScreen(
                 onValueChange = { password = it },
                 label = { Text("Password") },
                 visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
             )
             
             Spacer(modifier = Modifier.height(32.dp))
             
             Button(
                 onClick = { viewModel.register(name, email, password, role) },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = authState !is AuthState.Loading
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                enabled = authState !is AuthState.Loading,
+                shape = MaterialTheme.shapes.medium
             ) {
-                Text("Create Account")
+                Text("CREATE ACCOUNT", style = MaterialTheme.typography.titleLarge)
             }
 
             if (authState is AuthState.Loading) {

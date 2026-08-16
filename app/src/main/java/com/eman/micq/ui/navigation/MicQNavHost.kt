@@ -14,6 +14,8 @@ import com.eman.micq.ui.dashboards.ShiftHistoryScreen
 import com.eman.micq.ui.dashboards.SongHistoryScreen
 import com.eman.micq.ui.dj.DjDashboardScreen
 import com.eman.micq.ui.dj.DjShiftScreen
+import com.eman.micq.ui.onboarding.OnboardingScreen
+import com.eman.micq.ui.onboarding.SplashScreen
 import com.eman.micq.ui.performer.AddToQueueScreen
 import com.eman.micq.viewmodel.AdminActivityViewModel
 import com.eman.micq.viewmodel.AuthViewModel
@@ -29,8 +31,28 @@ fun MicQNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Login.route
+        startDestination = Screen.Splash.route
     ) {
+        composable(Screen.Splash.route) {
+            SplashScreen(
+                onSplashFinished = {
+                    navController.navigate(Screen.Onboarding.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Onboarding.route) {
+            OnboardingScreen(
+                onOnboardingFinished = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(Screen.Login.route) {
             LoginScreen(
                 viewModel = authViewModel,

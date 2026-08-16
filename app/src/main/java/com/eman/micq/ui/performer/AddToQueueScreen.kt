@@ -26,11 +26,12 @@ fun AddToQueueScreen(
     AddToQueueContent(
         onNavigateBack = onNavigateBack,
         snackbarHostState = snackbarHostState,
-        onAddEntry = { firstName, lastName, songName, tableNumber ->
+        onAddEntry = { firstName, lastName, preferredName, songName, tableNumber ->
             viewModel.addEntry(
                 sessionId = sessionId,
                 firstName = firstName,
                 lastName = lastName,
+                preferredName = preferredName,
                 songName = songName,
                 tableNumber = tableNumber,
                 onSuccess = {
@@ -50,10 +51,11 @@ fun AddToQueueContent(
     initialSongName: String = "",
     onNavigateBack: () -> Unit,
     snackbarHostState: SnackbarHostState,
-    onAddEntry: (String, String, String, String) -> Unit
+    onAddEntry: (String, String, String, String, String) -> Unit
 ) {
     var firstName by remember { mutableStateOf(initialFirstName) }
     var lastName by remember { mutableStateOf("") }
+    var preferredName by remember { mutableStateOf("") }
     var songName by remember { mutableStateOf(initialSongName) }
     var tableNumber by remember { mutableStateOf("") }
 
@@ -79,53 +81,78 @@ fun AddToQueueContent(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Text(
+                text = "Singer Information",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+
             OutlinedTextField(
                 value = firstName,
                 onValueChange = { firstName = it },
-                label = { Text("Customer First Name *") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("First Name *") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
             )
 
             OutlinedTextField(
                 value = lastName,
                 onValueChange = { lastName = it },
-                label = { Text("Customer Last Name (Optional)") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("Last Name") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
+            )
+
+            OutlinedTextField(
+                value = preferredName,
+                onValueChange = { preferredName = it },
+                label = { Text("Preferred / Stage Name") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                placeholder = { Text("e.g. The Rockstar") }
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            Text(
+                text = "Performance Details",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary
             )
 
             OutlinedTextField(
                 value = songName,
                 onValueChange = { songName = it },
-                label = { Text("Song Name *") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("Song Title *") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
             )
 
             OutlinedTextField(
                 value = tableNumber,
                 onValueChange = { tableNumber = it },
-                label = { Text("Table Number (Optional)") },
+                label = { Text("Table / Seat Number") },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                shape = MaterialTheme.shapes.medium
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
                 onClick = {
-                    onAddEntry(firstName, lastName, songName, tableNumber)
-                    // Reset form fields after calling the add entry lambda
-                    // Note: In the real screen, onSuccess handles clearing if needed, 
-                    // but for simpler previews we can just clear here or let the parent handle it.
-                    // To match user's request "clear all form fields" on success:
+                    onAddEntry(firstName, lastName, preferredName, songName, tableNumber)
                     firstName = ""
                     lastName = ""
+                    preferredName = ""
                     songName = ""
                     tableNumber = ""
                 },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = isButtonEnabled
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                enabled = isButtonEnabled,
+                shape = MaterialTheme.shapes.medium
             ) {
-                Text("Add to Queue")
+                Text("ADD TO QUEUE", style = MaterialTheme.typography.titleLarge)
             }
         }
     }
@@ -140,7 +167,7 @@ fun AddToQueueScreenPreview() {
             initialSongName = "Wonderwall",
             onNavigateBack = {},
             snackbarHostState = remember { SnackbarHostState() },
-            onAddEntry = { _, _, _, _ -> }
+            onAddEntry = { _, _, _, _, _ -> }
         )
     }
 }

@@ -32,12 +32,12 @@ fun RoleSelectionScreen(
     RoleSelectionContent(onRoleSelected = onRoleSelected)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoleSelectionContent(
     onRoleSelected: (String) -> Unit
 ) {
     val roles = listOf(
-
         RoleOption(
             title = "Admin",
             description = "Manage staff, sessions, and view performance logs.",
@@ -58,34 +58,41 @@ fun RoleSelectionContent(
         )
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(48.dp))
-        
-        Text(
-            text = "Welcome to MicQ",
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-        
-        Text(
-            text = "Select your staff role to begin account creation",
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
-        )
-
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth()
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Choose Your Role") }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            items(roles) { role ->
-                RoleCard(role = role) {
-                    onRoleSelected(role.roleKey)
+            Text(
+                text = "MicQ Team",
+                style = MaterialTheme.typography.displayLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            Text(
+                text = "Select your position to customize your experience",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
+            )
+
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(roles) { role ->
+                    RoleCard(role = role) {
+                        onRoleSelected(role.roleKey)
+                    }
                 }
             }
         }

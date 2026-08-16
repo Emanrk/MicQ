@@ -2,7 +2,7 @@ package com.eman.micq.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.eman.micq.data.model.QueueEntry
+import com.eman.micq.data.model.QueueItem
 import com.eman.micq.data.repository.AuthRepository
 import com.eman.micq.data.repository.QueueRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class QueueUiState(
-    val entries: List<QueueEntry> = emptyList(),
+    val entries: List<QueueItem> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -45,17 +45,19 @@ class QueueViewModel @Inject constructor(
         sessionId: String,
         firstName: String,
         lastName: String,
+        preferredName: String = "",
         songName: String,
         tableNumber: String,
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
             val user = authRepository.currentUser
-            val entry = QueueEntry(
+            val entry = QueueItem(
                 sessionId = sessionId,
                 performerId = user?.uid ?: "",
                 firstName = firstName,
                 lastName = lastName,
+                preferredName = preferredName,
                 songName = songName,
                 tableNumber = tableNumber
             )

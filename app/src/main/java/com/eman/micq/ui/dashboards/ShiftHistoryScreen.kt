@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -66,8 +67,19 @@ fun ShiftHistoryScreen(
 @Composable
 fun ShiftList(shifts: List<DjShift>) {
     if (shifts.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No shift history found.")
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Mic,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("No shift history found.", color = MaterialTheme.colorScheme.outline)
         }
     } else {
         LazyColumn(

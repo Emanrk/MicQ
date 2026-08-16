@@ -1,6 +1,6 @@
 package com.eman.micq.data.repository
 
-import com.eman.micq.data.model.QueueEntry
+import com.eman.micq.data.model.QueueItem
 import com.eman.micq.data.model.Session
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -22,8 +22,8 @@ data class SingerLoyalty(
 )
 
 interface QueueRepository {
-    fun getQueueForSession(sessionId: String): Flow<List<QueueEntry>>
-    suspend fun addToQueue(sessionId: String, entry: QueueEntry): Result<Unit>
+    fun getQueueForSession(sessionId: String): Flow<List<QueueItem>>
+    suspend fun addToQueue(sessionId: String, entry: QueueItem): Result<Unit>
     suspend fun removeFromQueue(sessionId: String, entryId: String): Result<Unit>
     suspend fun updateEntryStatus(
         sessionId: String,
@@ -32,8 +32,8 @@ interface QueueRepository {
         djId: String? = null,
         djName: String? = null
     ): Result<Unit>
-    suspend fun getCompletedEntries(sessionId: String): Result<List<QueueEntry>>
-    suspend fun getUserSongHistory(userId: String, role: String, sinceTimestamp: Long): Result<List<QueueEntry>>
+    suspend fun getCompletedEntries(sessionId: String): Result<List<QueueItem>>
+    suspend fun getUserSongHistory(userId: String, role: String, sinceTimestamp: Long): Result<List<QueueItem>>
     suspend fun getSongCountForDj(djId: String, startTime: Long, endTime: Long): Result<Int>
     suspend fun getLoyaltyData(): Result<List<SingerLoyalty>>
 }
@@ -43,12 +43,12 @@ class QueueRepositoryImpl @Inject constructor(
     private val database: FirebaseDatabase
 ) : QueueRepository {
 
-    override fun getQueueForSession(sessionId: String): Flow<List<QueueEntry>> = callbackFlow {
+    override fun getQueueForSession(sessionId: String): Flow<List<QueueItem>> = callbackFlow {
         val queueRef = database.getReference("sessions/$sessionId/queue")
         
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val entries = snapshot.children.mapNotNull { it.getValue(QueueEntry::class.java) }
+                val entries = snapshot.children.mapNotNull { it.getValue(QueueItem::class.java) }
                     .sortedBy { it.timestamp }
                 trySend(entries)
             }
@@ -65,7 +65,7 @@ class QueueRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun addToQueue(sessionId: String, entry: QueueEntry): Result<Unit> {
+    override suspend fun addToQueue(sessionId: String, entry: QueueItem): Result<Unit> {
         return try {
             val sessionSnapshot = database.getReference("sessions/$sessionId").get().await()
             val isKaraoke = sessionSnapshot.child("isKaraoke").getValue(Boolean::class.java) ?: false
@@ -98,7 +98,7 @@ class QueueRepositoryImpl @Inject constructor(
         return try {
             val entryRef = database.getReference("sessions/$sessionId/queue/$entryId")
             val snapshot = entryRef.get().await()
-            val entry = snapshot.getValue(QueueEntry::class.java) ?: throw Exception("Entry not found")
+            val entry = snapshot.getValue(QueueItem::class.java) ?: throw Exception("Entry not found")
 
             val sessionUpdates = mutableMapOf<String, Any>(
                 "status" to status
@@ -150,18 +150,18 @@ class QueueRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getCompletedEntries(sessionId: String): Result<List<QueueEntry>> {
+    override suspend fun getCompletedEntries(sessionId: String): Result<List<QueueItem>> {
         return try {
             val snapshot = database.getReference("sessions/$sessionId/queue")
                 .orderByChild("status").equalTo("DONE").get().await()
-            val entries = snapshot.children.mapNotNull { it.getValue(QueueEntry::class.java) }
+            val entries = snapshot.children.mapNotNull { it.getValue(QueueItem::class.java) }
             Result.success(entries.sortedByDescending { it.completedAt })
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun getUserSongHistory(userId: String, role: String, sinceTimestamp: Long): Result<List<QueueEntry>> {
+    override suspend fun getUserSongHistory(userId: String, role: String, sinceTimestamp: Long): Result<List<QueueItem>> {
         return try {
             val path = if (role == "DJ") "history/by_dj/$userId" else "history/by_performer/$userId"
             val snapshot = database.getReference(path)
@@ -169,7 +169,7 @@ class QueueRepositoryImpl @Inject constructor(
                 .startAt(sinceTimestamp.toDouble())
                 .get().await()
             
-            val entries = snapshot.children.mapNotNull { it.getValue(QueueEntry::class.java) }
+            val entries = snapshot.children.mapNotNull { it.getValue(QueueItem::class.java) }
                 .sortedByDescending { it.completedAt }
             
             Result.success(entries)
@@ -195,9 +195,9 @@ class QueueRepositoryImpl @Inject constructor(
     override suspend fun getLoyaltyData(): Result<List<SingerLoyalty>> {
         return try {
             val snapshot = database.getReference("history/karaoke").get().await()
-            val allEntries = snapshot.children.mapNotNull { it.getValue(QueueEntry::class.java) }
+            val allEntries = snapshot.children.mapNotNull { it.getValue(QueueItem::class.java) }
             
-            val loyaltyMap = mutableMapOf<String, MutableList<QueueEntry>>()
+            val loyaltyMap = mutableMapOf<String, MutableList<QueueItem>>()
             
             allEntries.forEach { entry ->
                 // Normalize names for matching

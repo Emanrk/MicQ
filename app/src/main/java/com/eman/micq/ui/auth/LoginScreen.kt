@@ -33,6 +33,7 @@ fun LoginScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginContent(
     authState: AuthState,
@@ -42,62 +43,74 @@ fun LoginContent(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "MicQ Login",
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-        
-        Spacer(modifier = Modifier.height(32.dp))
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-        
-        Spacer(modifier = Modifier.height(32.dp))
-        
-        Button(
-            onClick = { onLogin(email, password) },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = authState !is AuthState.Loading
-        ) {
-            Text("Login")
-        }
-
-        TextButton(onClick = onNavigateToRegister) {
-            Text("New staff member? Register here")
-        }
-
-        if (authState is AuthState.Loading) {
-            CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
-        }
-
-        if (authState is AuthState.Error) {
-            Text(
-                text = (authState as AuthState.Error).message,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = 8.dp)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("MicQ Staff Portal") }
             )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Welcome Back",
+                style = MaterialTheme.typography.displayLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            Spacer(modifier = Modifier.height(32.dp))
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email Address") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
+            )
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            Button(
+                onClick = { onLogin(email, password) },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                enabled = authState !is AuthState.Loading,
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Text("LOG IN", style = MaterialTheme.typography.titleLarge)
+            }
+
+            TextButton(onClick = onNavigateToRegister) {
+                Text("New staff member? Register here", color = MaterialTheme.colorScheme.secondary)
+            }
+
+            if (authState is AuthState.Loading) {
+                CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
+            }
+
+            if (authState is AuthState.Error) {
+                Text(
+                    text = (authState as AuthState.Error).message,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
         }
     }
 }

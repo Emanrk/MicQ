@@ -1,6 +1,8 @@
 package com.eman.micq.ui.dj
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -24,10 +26,10 @@ fun DjShiftScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("DJ Shift") },
+                title = { Text("Shift Management") },
                 actions = {
-                    TextButton(onClick = onLogout) {
-                        Text("Logout")
+                    IconButton(onClick = onLogout) {
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout")
                     }
                 }
             )
@@ -43,36 +45,44 @@ fun DjShiftScreen(
         ) {
             if (uiState.activeShift == null) {
                 Text(
-                    text = "No Active Shift",
-                    style = MaterialTheme.typography.headlineSmall
+                    text = "MicQ Ready",
+                    style = MaterialTheme.typography.displayLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
-                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "Sign on to start your session",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
+                )
                 Button(
                     onClick = { viewModel.startShift() },
-                    modifier = Modifier.fillMaxWidth().height(56.dp)
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = MaterialTheme.shapes.medium
                 ) {
-                    Text("START SHIFT")
+                    Text("START SHIFT", style = MaterialTheme.typography.titleLarge)
                 }
             } else {
                 Text(
-                    text = "Active Shift",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    text = "SHIFT ACTIVE",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = uiState.elapsedTime,
                     style = MaterialTheme.typography.displayLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 48.sp
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 64.sp
                     ),
-                    modifier = Modifier.padding(vertical = 16.dp)
+                    modifier = Modifier.padding(vertical = 24.dp)
                 )
                 
                 Button(
                     onClick = onNavigateToDashboard,
-                    modifier = Modifier.fillMaxWidth().height(56.dp)
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = MaterialTheme.shapes.medium
                 ) {
-                    Text("GO TO QUEUE CONTROL")
+                    Text("OPEN QUEUE CONTROL", style = MaterialTheme.typography.titleLarge)
                 }
                 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -82,9 +92,10 @@ fun DjShiftScreen(
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
-                    )
+                    ),
+                    shape = MaterialTheme.shapes.medium
                 ) {
-                    Text("END SHIFT")
+                    Text("END SHIFT", style = MaterialTheme.typography.titleLarge)
                 }
             }
 

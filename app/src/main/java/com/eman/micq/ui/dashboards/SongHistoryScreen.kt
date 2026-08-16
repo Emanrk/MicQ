@@ -5,13 +5,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.eman.micq.data.model.QueueEntry
+import com.eman.micq.data.model.QueueItem
 import com.eman.micq.viewmodel.SongHistoryState
 import com.eman.micq.viewmodel.SongHistoryViewModel
 import java.text.SimpleDateFormat
@@ -65,10 +66,21 @@ fun SongHistoryScreen(
 }
 
 @Composable
-fun SongHistoryList(entries: List<QueueEntry>) {
+fun SongHistoryList(entries: List<QueueItem>) {
     if (entries.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No song history for this session.")
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Mic,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("No song history found.", color = MaterialTheme.colorScheme.outline)
         }
     } else {
         LazyColumn(
@@ -84,9 +96,9 @@ fun SongHistoryList(entries: List<QueueEntry>) {
 }
 
 @Composable
-fun SongHistoryItem(entry: QueueEntry) {
+fun SongHistoryItem(entry: QueueItem) {
     val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-    val completedTime = if (entry.completedAt != null) dateFormat.format(Date(entry.completedAt)) else "N/A"
+    val completedTime = entry.completedAt?.let { dateFormat.format(Date(it)) } ?: "N/A"
 
     Card(
         modifier = Modifier.fillMaxWidth(),

@@ -1,5 +1,7 @@
 package com.eman.micq.ui.dj
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -19,7 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.eman.micq.data.model.QueueEntry
+import com.eman.micq.data.model.QueueItem
+import com.eman.micq.ui.theme.MicQHeroGradient
 import com.eman.micq.ui.theme.MicQTheme
 import com.eman.micq.viewmodel.QueueUiState
 import com.eman.micq.viewmodel.QueueViewModel
@@ -85,11 +88,23 @@ fun DjDashboardContent(
         }
     ) { padding ->
         if (uiState.entries.isEmpty() && !uiState.isLoading) {
-            Box(
+            Column(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Text("No singers in queue yet", style = MaterialTheme.typography.bodyLarge)
+                Icon(
+                    imageVector = Icons.Default.Mic,
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "No singers in queue yet",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.outline
+                )
             }
         } else {
             LazyColumn(
@@ -117,19 +132,29 @@ fun DjDashboardContent(
 @Composable
 fun QueueItemCard(
     position: Int,
-    entry: QueueEntry,
+    entry: QueueItem,
     onMarkSinging: () -> Unit,
     onMarkDone: () -> Unit
 ) {
+    val isSinging = entry.status == "SINGING"
     val statusColor = when (entry.status) {
-        "SINGING" -> Color(0xFF4CAF50) // Green
-        "DONE" -> Color(0xFF2196F3)    // Blue
-        else -> Color.Gray
+        "SINGING" -> MaterialTheme.colorScheme.primary
+        "DONE" -> MaterialTheme.colorScheme.secondary
+        else -> MaterialTheme.colorScheme.outline
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (isSinging) Modifier.border(
+                    width = 2.dp,
+                    brush = MicQHeroGradient,
+                    shape = MaterialTheme.shapes.medium
+                ) else Modifier
+            ),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isSinging) 8.dp else 2.dp),
+        shape = MaterialTheme.shapes.medium
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -139,13 +164,13 @@ fun QueueItemCard(
             ) {
                 Text(
                     text = "#$position",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.displayLarge,
+                    color = if (isSinging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                 )
                 
                 Surface(
                     color = statusColor.copy(alpha = 0.1f),
-                    shape = MaterialTheme.shapes.small
+                    shape = MaterialTheme.shapes.extraSmall
                 ) {
                     Text(
                         text = entry.status,
@@ -158,20 +183,27 @@ fun QueueItemCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            val displayName = if (entry.preferredName.isNotBlank()) {
+                "${entry.preferredName} (${entry.firstName})"
+            } else {
+                "${entry.firstName} ${entry.lastName}"
+            }
+
             Text(
-                text = "${entry.firstName} ${entry.lastName}",
-                style = MaterialTheme.typography.titleLarge
+                text = displayName,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
             )
             Text(
                 text = entry.songName,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primary
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.secondary
             )
             
             if (entry.tableNumber.isNotBlank()) {
                 Text(
                     text = "Table: ${entry.tableNumber}",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
 
@@ -181,22 +213,24 @@ fun QueueItemCard(
                 if (entry.status != "SINGING" && entry.status != "DONE") {
                     Button(
                         onClick = onMarkSinging,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        shape = MaterialTheme.shapes.medium
                     ) {
                         Icon(Icons.Default.Mic, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Singing")
+                        Text("START SINGING")
                     }
                 }
                 
                 if (entry.status != "DONE") {
                     OutlinedButton(
                         onClick = onMarkDone,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        shape = MaterialTheme.shapes.medium
                     ) {
                         Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Done")
+                        Text("MARK DONE")
                     }
                 }
             }
@@ -208,22 +242,20 @@ fun QueueItemCard(
 @Composable
 fun DjDashboardScreenPreview() {
     val fakeEntries = listOf(
-        QueueEntry(
-            id = "1",
-            firstName = "Sarah",
-            lastName = "",
-            songName = "I Will Always Love You",
-            tableNumber = "3",
+        QueueItem().apply {
+            id = "1"
+            firstName = "Sarah"
+            songName = "I Will Always Love You"
+            tableNumber = "3"
             status = "WAITING"
-        ),
-        QueueEntry(
-            id = "2",
-            firstName = "John",
-            lastName = "",
-            songName = "Wonderwall",
-            tableNumber = "5",
+        },
+        QueueItem().apply {
+            id = "2"
+            firstName = "John"
+            songName = "Wonderwall"
+            tableNumber = "5"
             status = "SINGING"
-        )
+        }
     )
     
     MicQTheme {

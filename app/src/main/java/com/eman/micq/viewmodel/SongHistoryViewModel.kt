@@ -2,7 +2,7 @@ package com.eman.micq.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.eman.micq.data.model.QueueEntry
+import com.eman.micq.data.model.QueueItem
 import com.eman.micq.data.repository.AuthRepository
 import com.eman.micq.data.repository.QueueRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 sealed class SongHistoryState {
     object Loading : SongHistoryState()
-    data class Success(val entries: List<QueueEntry>) : SongHistoryState()
+    data class Success(val entries: List<QueueItem>) : SongHistoryState()
     data class Error(val message: String) : SongHistoryState()
 }
 

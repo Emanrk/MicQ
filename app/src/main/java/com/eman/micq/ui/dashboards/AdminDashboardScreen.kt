@@ -95,7 +95,9 @@ fun AdminDashboardContent(
         }
         
         if (activities.isEmpty()) {
-            item { Text("No recent DJ activity found.") }
+            item {
+                EmptyStateMotif("No recent DJ activity found.")
+            }
         } else {
             items(activities) { activity ->
                 DjActivityCard(activity = activity)
@@ -112,12 +114,35 @@ fun AdminDashboardContent(
         }
 
         if (loyaltyData.isEmpty()) {
-            item { Text("No loyalty data available yet.") }
+            item {
+                EmptyStateMotif("No loyalty data available yet.")
+            }
         } else {
             items(loyaltyData) { loyalty ->
                 LoyaltyCard(loyalty = loyalty)
             }
         }
+    }
+}
+
+@Composable
+fun EmptyStateMotif(text: String) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = Icons.Default.Mic,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.outline
+        )
     }
 }
 
