@@ -12,4 +12,5 @@ sealed class Screen(val route: String) {
     object PerformerDashboard : Screen("performer_dashboard")
     object AddToQueue : Screen("add_to_queue")
     object ShiftHistory : Screen("shift_history")
+    object SongHistory : Screen("song_history")
 }

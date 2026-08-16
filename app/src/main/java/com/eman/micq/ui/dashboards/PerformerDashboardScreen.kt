@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun PerformerDashboardScreen(
     onNavigateToAddQueue: () -> Unit,
+    onNavigateToSongHistory: () -> Unit,
     onLogout: () -> Unit
 ) {
     Column(
@@ -20,6 +21,8 @@ fun PerformerDashboardScreen(
         Text("Performer Dashboard", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onNavigateToAddQueue) { Text("Add Customer to Queue") }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = onNavigateToSongHistory) { Text("View Song History") }
         TextButton(onClick = onLogout) { Text("Logout") }
     }
 }

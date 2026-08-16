@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -27,6 +28,7 @@ import com.eman.micq.viewmodel.QueueViewModel
 fun DjDashboardScreen(
     sessionId: String,
     viewModel: QueueViewModel,
+    onNavigateToSongHistory: () -> Unit,
     onSignOff: () -> Unit,
     onLogout: () -> Unit
 ) {
@@ -38,6 +40,7 @@ fun DjDashboardScreen(
 
     DjDashboardContent(
         uiState = uiState,
+        onNavigateToSongHistory = onNavigateToSongHistory,
         onSignOff = onSignOff,
         onLogout = onLogout,
         onMarkSinging = { entryId -> viewModel.updateEntryStatus(sessionId, entryId, "SINGING") },
@@ -49,6 +52,7 @@ fun DjDashboardScreen(
 @Composable
 fun DjDashboardContent(
     uiState: QueueUiState,
+    onNavigateToSongHistory: () -> Unit,
     onSignOff: () -> Unit,
     onLogout: () -> Unit,
     onMarkSinging: (String) -> Unit,
@@ -59,6 +63,9 @@ fun DjDashboardContent(
             TopAppBar(
                 title = { Text("Live Queue Control") },
                 actions = {
+                    IconButton(onClick = onNavigateToSongHistory) {
+                        Icon(Icons.Default.History, contentDescription = "Song History")
+                    }
                     IconButton(onClick = onLogout) {
                         Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout")
                     }
@@ -222,6 +229,7 @@ fun DjDashboardScreenPreview() {
     MicQTheme {
         DjDashboardContent(
             uiState = QueueUiState(entries = fakeEntries),
+            onNavigateToSongHistory = {},
             onSignOff = {},
             onLogout = {},
             onMarkSinging = {},

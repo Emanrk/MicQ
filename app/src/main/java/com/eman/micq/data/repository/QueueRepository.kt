@@ -1,6 +1,7 @@
 package com.eman.micq.data.repository
 
 import com.eman.micq.data.model.QueueEntry
+import com.eman.micq.data.model.Session
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -12,11 +13,29 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
+data class SingerLoyalty(
+    val firstName: String,
+    val lastName: String,
+    val preferredName: String,
+    val visitCount: Int,
+    val lastVisitTimestamp: Long
+)
+
 interface QueueRepository {
     fun getQueueForSession(sessionId: String): Flow<List<QueueEntry>>
     suspend fun addToQueue(sessionId: String, entry: QueueEntry): Result<Unit>
     suspend fun removeFromQueue(sessionId: String, entryId: String): Result<Unit>
-    suspend fun updateEntryStatus(sessionId: String, entryId: String, status: String): Result<Unit>
+    suspend fun updateEntryStatus(
+        sessionId: String,
+        entryId: String,
+        status: String,
+        djId: String? = null,
+        djName: String? = null
+    ): Result<Unit>
+    suspend fun getCompletedEntries(sessionId: String): Result<List<QueueEntry>>
+    suspend fun getUserSongHistory(userId: String, role: String, sinceTimestamp: Long): Result<List<QueueEntry>>
+    suspend fun getSongCountForDj(djId: String, startTime: Long, endTime: Long): Result<Int>
+    suspend fun getLoyaltyData(): Result<List<SingerLoyalty>>
 }
 
 @Singleton
@@ -48,8 +67,11 @@ class QueueRepositoryImpl @Inject constructor(
 
     override suspend fun addToQueue(sessionId: String, entry: QueueEntry): Result<Unit> {
         return try {
+            val sessionSnapshot = database.getReference("sessions/$sessionId").get().await()
+            val isKaraoke = sessionSnapshot.child("isKaraoke").getValue(Boolean::class.java) ?: false
+            
             val queueRef = database.getReference("sessions/$sessionId/queue").push()
-            val newEntry = entry.copy(id = queueRef.key ?: "")
+            val newEntry = entry.copy(id = queueRef.key ?: "", isKaraoke = isKaraoke)
             queueRef.setValue(newEntry).await()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -66,10 +88,135 @@ class QueueRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateEntryStatus(sessionId: String, entryId: String, status: String): Result<Unit> {
+    override suspend fun updateEntryStatus(
+        sessionId: String,
+        entryId: String,
+        status: String,
+        djId: String?,
+        djName: String?
+    ): Result<Unit> {
         return try {
-            database.getReference("sessions/$sessionId/queue/$entryId/status").setValue(status).await()
+            val entryRef = database.getReference("sessions/$sessionId/queue/$entryId")
+            val snapshot = entryRef.get().await()
+            val entry = snapshot.getValue(QueueEntry::class.java) ?: throw Exception("Entry not found")
+
+            val sessionUpdates = mutableMapOf<String, Any>(
+                "status" to status
+            )
+            
+            if (status == "DONE") {
+                val completedAt = System.currentTimeMillis()
+                sessionUpdates["completedAt"] = completedAt
+                if (djId != null) sessionUpdates["djId"] = djId
+                if (djName != null) sessionUpdates["djName"] = djName
+                
+                // Prepare atomic dual-write for history
+                val historyEntry = entry.copy(
+                    status = "DONE",
+                    completedAt = completedAt,
+                    djId = djId ?: "",
+                    djName = djName ?: ""
+                )
+                
+                val rootUpdates = mutableMapOf<String, Any>()
+                // Update session queue
+                sessionUpdates.forEach { (key, value) ->
+                    rootUpdates["sessions/$sessionId/queue/$entryId/$key"] = value
+                }
+                
+                // Add to DJ history
+                if (djId != null) {
+                    rootUpdates["history/by_dj/$djId/$entryId"] = historyEntry
+                }
+                
+                // Add to Performer history (the staff who added the entry)
+                if (entry.performerId.isNotEmpty()) {
+                    rootUpdates["history/by_performer/${entry.performerId}/$entryId"] = historyEntry
+                }
+
+                // Add to flat karaoke history if applicable
+                if (entry.isKaraoke) {
+                    rootUpdates["history/karaoke/$entryId"] = historyEntry
+                }
+                
+                database.getReference().updateChildren(rootUpdates).await()
+            } else {
+                entryRef.updateChildren(sessionUpdates).await()
+            }
+            
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getCompletedEntries(sessionId: String): Result<List<QueueEntry>> {
+        return try {
+            val snapshot = database.getReference("sessions/$sessionId/queue")
+                .orderByChild("status").equalTo("DONE").get().await()
+            val entries = snapshot.children.mapNotNull { it.getValue(QueueEntry::class.java) }
+            Result.success(entries.sortedByDescending { it.completedAt })
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getUserSongHistory(userId: String, role: String, sinceTimestamp: Long): Result<List<QueueEntry>> {
+        return try {
+            val path = if (role == "DJ") "history/by_dj/$userId" else "history/by_performer/$userId"
+            val snapshot = database.getReference(path)
+                .orderByChild("completedAt")
+                .startAt(sinceTimestamp.toDouble())
+                .get().await()
+            
+            val entries = snapshot.children.mapNotNull { it.getValue(QueueEntry::class.java) }
+                .sortedByDescending { it.completedAt }
+            
+            Result.success(entries)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getSongCountForDj(djId: String, startTime: Long, endTime: Long): Result<Int> {
+        return try {
+            val snapshot = database.getReference("history/by_dj/$djId")
+                .orderByChild("completedAt")
+                .startAt(startTime.toDouble())
+                .endAt(endTime.toDouble())
+                .get().await()
+            
+            Result.success(snapshot.childrenCount.toInt())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getLoyaltyData(): Result<List<SingerLoyalty>> {
+        return try {
+            val snapshot = database.getReference("history/karaoke").get().await()
+            val allEntries = snapshot.children.mapNotNull { it.getValue(QueueEntry::class.java) }
+            
+            val loyaltyMap = mutableMapOf<String, MutableList<QueueEntry>>()
+            
+            allEntries.forEach { entry ->
+                // Normalize names for matching
+                val key = "${entry.firstName.lowercase().trim()}|${entry.lastName.lowercase().trim()}|${entry.preferredName.lowercase().trim()}"
+                loyaltyMap.getOrPut(key) { mutableListOf() }.add(entry)
+            }
+            
+            val loyaltyList = loyaltyMap.values.map { entries ->
+                val first = entries.first()
+                SingerLoyalty(
+                    firstName = first.firstName,
+                    lastName = first.lastName,
+                    preferredName = first.preferredName,
+                    visitCount = entries.map { it.sessionId }.distinct().size,
+                    lastVisitTimestamp = entries.mapNotNull { it.completedAt }.maxOrNull() ?: first.timestamp
+                )
+            }.sortedByDescending { it.visitCount }
+            
+            Result.success(loyaltyList)
         } catch (e: Exception) {
             Result.failure(e)
         }

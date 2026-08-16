@@ -43,29 +43,38 @@ class AuthViewModel @Inject constructor(
     }
 
     private fun checkAuthStatus() {
-        val user = authRepository.currentUser
-        if (user != null) {
-            _authState.value = AuthState.Authenticated(user)
-        } else {
-            _authState.value = AuthState.Unauthenticated()
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            val user = authRepository.fetchCurrentUserWithRole()
+            if (user != null) {
+                _authState.value = AuthState.Authenticated(user)
+            } else {
+                _authState.value = AuthState.Unauthenticated()
+            }
         }
     }
 
     fun register(name: String, email: String, password: String, role: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            // In a real app, you would use firebaseAuth.createUserWithEmailAndPassword
-            // and then save the user details (including role) to the Realtime Database.
-            // For now, we'll simulate a successful registration.
-            _authState.value = AuthState.Authenticated(User(uid = "temp", displayName = name, email = email, role = role))
+            val result = authRepository.signUp(name, email, password, role)
+            result.onSuccess { user ->
+                _authState.value = AuthState.Authenticated(user)
+            }.onFailure { error ->
+                _authState.value = AuthState.Error(error.message ?: "Registration failed")
+            }
         }
     }
 
     fun login(email: String, password: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            // Simulate login and fetching user role from database
-            _authState.value = AuthState.Authenticated(User(uid = "temp", displayName = "Staff Member", email = email, role = "DJ"))
+            val result = authRepository.signIn(email, password)
+            result.onSuccess { user ->
+                _authState.value = AuthState.Authenticated(user)
+            }.onFailure { error ->
+                _authState.value = AuthState.Error(error.message ?: "Login failed")
+            }
         }
     }
 

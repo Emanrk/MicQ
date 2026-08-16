@@ -50,7 +50,10 @@ class QueueViewModel @Inject constructor(
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
+            val user = authRepository.currentUser
             val entry = QueueEntry(
+                sessionId = sessionId,
+                performerId = user?.uid ?: "",
                 firstName = firstName,
                 lastName = lastName,
                 songName = songName,
@@ -77,7 +80,11 @@ class QueueViewModel @Inject constructor(
 
     fun updateEntryStatus(sessionId: String, entryId: String, status: String) {
         viewModelScope.launch {
-            queueRepository.updateEntryStatus(sessionId, entryId, status)
+            val user = authRepository.currentUser
+            val djId = if (user?.role == "DJ") user.uid else null
+            val djName = if (user?.role == "DJ") user.displayName else null
+            
+            queueRepository.updateEntryStatus(sessionId, entryId, status, djId, djName)
                 .onFailure { e ->
                     _uiState.value = _uiState.value.copy(error = e.message)
                 }

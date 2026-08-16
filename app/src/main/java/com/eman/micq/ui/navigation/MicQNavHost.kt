@@ -10,12 +10,17 @@ import com.eman.micq.ui.auth.RegisterScreen
 import com.eman.micq.ui.auth.RoleSelectionScreen
 import com.eman.micq.ui.dashboards.AdminDashboardScreen
 import com.eman.micq.ui.dashboards.PerformerDashboardScreen
+import com.eman.micq.ui.dashboards.ShiftHistoryScreen
+import com.eman.micq.ui.dashboards.SongHistoryScreen
 import com.eman.micq.ui.dj.DjDashboardScreen
 import com.eman.micq.ui.dj.DjShiftScreen
 import com.eman.micq.ui.performer.AddToQueueScreen
+import com.eman.micq.viewmodel.AdminActivityViewModel
 import com.eman.micq.viewmodel.AuthViewModel
 import com.eman.micq.viewmodel.DjViewModel
 import com.eman.micq.viewmodel.QueueViewModel
+import com.eman.micq.viewmodel.ShiftHistoryViewModel
+import com.eman.micq.viewmodel.SongHistoryViewModel
 
 @Composable
 fun MicQNavHost(
@@ -75,7 +80,9 @@ fun MicQNavHost(
         }
 
         composable(Screen.AdminDashboard.route) {
+            val adminViewModel: AdminActivityViewModel = hiltViewModel()
             AdminDashboardScreen(
+                viewModel = adminViewModel,
                 onNavigateToShiftHistory = { navController.navigate(Screen.ShiftHistory.route) },
                 onLogout = {
                     authViewModel.signOut()
@@ -86,9 +93,26 @@ fun MicQNavHost(
             )
         }
 
+        composable(Screen.ShiftHistory.route) {
+            val shiftHistoryViewModel: ShiftHistoryViewModel = hiltViewModel()
+            ShiftHistoryScreen(
+                viewModel = shiftHistoryViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.SongHistory.route) {
+            val songHistoryViewModel: SongHistoryViewModel = hiltViewModel()
+            SongHistoryScreen(
+                viewModel = songHistoryViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
         composable(Screen.PerformerDashboard.route) {
             PerformerDashboardScreen(
                 onNavigateToAddQueue = { navController.navigate(Screen.AddToQueue.route) },
+                onNavigateToSongHistory = { navController.navigate(Screen.SongHistory.route) },
                 onLogout = {
                     authViewModel.signOut()
                     navController.navigate(Screen.Login.route) {
@@ -124,6 +148,7 @@ fun MicQNavHost(
             DjDashboardScreen(
                 sessionId = "default_session",
                 viewModel = queueViewModel,
+                onNavigateToSongHistory = { navController.navigate(Screen.SongHistory.route) },
                 onSignOff = { navController.popBackStack() },
                 onLogout = {
                     authViewModel.signOut()
