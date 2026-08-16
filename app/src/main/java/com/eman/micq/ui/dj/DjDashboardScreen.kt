@@ -242,20 +242,20 @@ fun QueueItemCard(
 @Composable
 fun DjDashboardScreenPreview() {
     val fakeEntries = listOf(
-        QueueItem().apply {
-            id = "1"
-            firstName = "Sarah"
-            songName = "I Will Always Love You"
-            tableNumber = "3"
+        QueueItem(
+            id = "1",
+            firstName = "Sarah",
+            songName = "I Will Always Love You",
+            tableNumber = "3",
             status = "WAITING"
-        },
-        QueueItem().apply {
-            id = "2"
-            firstName = "John"
-            songName = "Wonderwall"
-            tableNumber = "5"
+        ),
+        QueueItem(
+            id = "2",
+            firstName = "John",
+            songName = "Wonderwall",
+            tableNumber = "5",
             status = "SINGING"
-        }
+        )
     )
     
     MicQTheme {

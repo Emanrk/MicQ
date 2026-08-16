@@ -1,20 +1,18 @@
 package com.eman.micq.data.model
 
 data class QueueItem(
-    var id: String = "",
-    var sessionId: String = "",
-    var performerId: String = "",
-    var djId: String = "",
-    var djName: String = "",
-    var firstName: String = "",
-    var lastName: String = "",
-    var preferredName: String = "",
-    var songName: String = "",
-    var tableNumber: String = "",
-    var status: String = "WAITING", // WAITING, SINGING, DONE
-    var timestamp: Long = 0L,
-    var completedAt: Long? = null,
-    var isKaraoke: Boolean = false
-) {
-    constructor() : this("", "", "", "", "", "", "", "", "", "", "WAITING", 0L, null, false)
-}
+    val id: String = "",
+    val sessionId: String = "",
+    val performerId: String = "",
+    val djId: String = "",
+    val djName: String = "",
+    val firstName: String = "",
+    val lastName: String = "",
+    val preferredName: String = "",
+    val songName: String = "",
+    val tableNumber: String = "",
+    val status: String = "WAITING", // WAITING, SINGING, DONE
+    val timestamp: Long = 0L,
+    val completedAt: Long? = null,
+    val isKaraoke: Boolean = false
+)
