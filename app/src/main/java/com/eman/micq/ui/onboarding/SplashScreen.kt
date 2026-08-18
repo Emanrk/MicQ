@@ -44,30 +44,14 @@ fun SplashContent() {
             .background(MicQHeroGradient),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                imageVector = Icons.Default.Mic,
-                contentDescription = "MicQ Logo",
-                modifier = Modifier
-                    .size(120.dp)
-                    .scale(scale),
-                tint = MaterialTheme.colorScheme.onPrimary
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Text(
-                text = "MicQ",
-                style = MaterialTheme.typography.displayLarge,
-                color = MaterialTheme.colorScheme.onPrimary
-            )
-            
-            Text(
-                text = "KARAOKE MANAGEMENT",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
-            )
-        }
+        Icon(
+            imageVector = Icons.Default.Mic,
+            contentDescription = "MicQ Logo",
+            modifier = Modifier
+                .size(120.dp)
+                .scale(scale),
+            tint = MaterialTheme.colorScheme.onPrimary
+        )
     }
 }
 

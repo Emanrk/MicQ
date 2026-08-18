@@ -1,11 +1,20 @@
 package com.eman.micq.ui.auth
 
+
+
+
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eman.micq.ui.theme.MicQTheme
@@ -42,11 +51,12 @@ fun LoginContent(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("MicQ Staff Portal") }
+                title = { Text("Log In") }
             )
         }
     ) { padding ->
@@ -55,9 +65,11 @@ fun LoginContent(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Top
         ) {
+            Spacer(modifier = Modifier.height(40.dp))
+
             Text(
                 text = "Welcome Back",
                 style = MaterialTheme.typography.displayLarge,
@@ -66,23 +78,41 @@ fun LoginContent(
             
             Spacer(modifier = Modifier.height(32.dp))
 
-            OutlinedTextField(
+            TextField(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email Address") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.medium,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                )
             )
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            OutlinedTextField(
+            TextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Password") },
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, contentDescription = null)
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.medium,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                )
             )
             
             Spacer(modifier = Modifier.height(32.dp))
@@ -91,24 +121,33 @@ fun LoginContent(
                 onClick = { onLogin(email, password) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 enabled = authState !is AuthState.Loading,
-                shape = MaterialTheme.shapes.medium
+                shape = CircleShape
             ) {
-                Text("LOG IN", style = MaterialTheme.typography.titleLarge)
+                Text("Log in", style = MaterialTheme.typography.titleLarge)
             }
 
-            TextButton(onClick = onNavigateToRegister) {
+            TextButton(
+                onClick = onNavigateToRegister,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
                 Text("New staff member? Register here", color = MaterialTheme.colorScheme.secondary)
             }
 
             if (authState is AuthState.Loading) {
-                CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
             }
 
             if (authState is AuthState.Error) {
                 Text(
                     text = (authState as AuthState.Error).message,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .align(Alignment.CenterHorizontally)
                 )
             }
         }
