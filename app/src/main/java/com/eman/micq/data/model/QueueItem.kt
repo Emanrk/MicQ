@@ -11,8 +11,15 @@ data class QueueItem(
     val preferredName: String = "",
     val songName: String = "",
     val tableNumber: String = "",
-    val status: String = "WAITING", // WAITING, SINGING, DONE
+    val status: String = STATUS_WAITING, // WAITING, NEXT, SINGING, DONE
     val timestamp: Long = 0L,
     val completedAt: Long? = null,
     val isKaraoke: Boolean = false
-)
+) {
+    companion object {
+        const val STATUS_WAITING = "WAITING"
+        const val STATUS_NEXT = "NEXT"
+        const val STATUS_SINGING = "SINGING"
+        const val STATUS_DONE = "DONE"
+    }
+}

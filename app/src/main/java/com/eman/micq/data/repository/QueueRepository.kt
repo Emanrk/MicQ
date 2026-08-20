@@ -5,13 +5,17 @@ import com.eman.micq.data.model.Session
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.MutableData
+import com.google.firebase.database.Transaction
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.resume
 
 data class SingerLoyalty(
     val firstName: String,
@@ -32,6 +36,7 @@ interface QueueRepository {
         djId: String? = null,
         djName: String? = null
     ): Result<Unit>
+    suspend fun setExclusiveNext(sessionId: String, entryId: String): Result<Unit>
     suspend fun getCompletedEntries(sessionId: String): Result<List<QueueItem>>
     suspend fun getUserSongHistory(userId: String, role: String, sinceTimestamp: Long): Result<List<QueueItem>>
     suspend fun getSongCountForDj(djId: String, startTime: Long, endTime: Long): Result<Int>
@@ -148,6 +153,79 @@ class QueueRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override suspend fun setExclusiveNext(
+        sessionId: String,
+        entryId: String
+    ): Result<Unit> = suspendCancellableCoroutine { continuation ->
+
+        val queueRef = database.getReference(
+            "sessions/$sessionId/queue"
+        )
+
+        queueRef.runTransaction(object : Transaction.Handler {
+
+            override fun doTransaction(
+                currentData: MutableData
+            ): Transaction.Result {
+
+                var targetFound = false
+
+                currentData.children.forEach { child ->
+                    val id = child.key
+                    val currentStatus =
+                        child.child("status").getValue(String::class.java)
+
+                    if (id == entryId) {
+                        child.child("status").value =
+                            QueueItem.STATUS_NEXT
+
+                        targetFound = true
+
+                    } else if (currentStatus == QueueItem.STATUS_NEXT) {
+                        child.child("status").value =
+                            QueueItem.STATUS_WAITING
+                    }
+                }
+
+                return if (targetFound) {
+                    Transaction.success(currentData)
+                } else {
+                    Transaction.abort()
+                }
+            }
+
+            override fun onComplete(
+                error: DatabaseError?,
+                committed: Boolean,
+                snapshot: DataSnapshot?
+            ) {
+                if (continuation.isActive) {
+                    when {
+                        error != null -> {
+                            continuation.resume(
+                                Result.failure(error.toException())
+                            )
+                        }
+
+                        !committed -> {
+                            continuation.resume(
+                                Result.failure(
+                                    Exception(
+                                        "Entry $entryId not found in queue"
+                                    )
+                                )
+                            )
+                        }
+
+                        else -> {
+                            continuation.resume(Result.success(Unit))
+                        }
+                    }
+                }
+            }
+        })
     }
 
     override suspend fun getCompletedEntries(sessionId: String): Result<List<QueueItem>> {

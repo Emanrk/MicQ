@@ -71,6 +71,15 @@ class QueueViewModel @Inject constructor(
         }
     }
 
+    fun markNext(sessionId: String, entryId: String) {
+        viewModelScope.launch {
+            queueRepository.setExclusiveNext(sessionId, entryId)
+                .onFailure { e ->
+                    _uiState.value = _uiState.value.copy(error = e.message)
+                }
+        }
+    }
+
     fun leaveQueue(sessionId: String, entryId: String) {
         viewModelScope.launch {
             queueRepository.removeFromQueue(sessionId, entryId)

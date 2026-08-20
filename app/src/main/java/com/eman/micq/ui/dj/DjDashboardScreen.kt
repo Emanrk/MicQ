@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Queue
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,8 +47,9 @@ fun DjDashboardScreen(
         onNavigateToSongHistory = onNavigateToSongHistory,
         onSignOff = onSignOff,
         onLogout = onLogout,
-        onMarkSinging = { entryId -> viewModel.updateEntryStatus(sessionId, entryId, "SINGING") },
-        onMarkDone = { entryId -> viewModel.updateEntryStatus(sessionId, entryId, "DONE") }
+        onMarkNext = { entryId -> viewModel.markNext(sessionId, entryId) },
+        onMarkSinging = { entryId -> viewModel.updateEntryStatus(sessionId, entryId, QueueItem.STATUS_SINGING) },
+        onMarkDone = { entryId -> viewModel.updateEntryStatus(sessionId, entryId, QueueItem.STATUS_DONE) }
     )
 }
 
@@ -58,6 +60,7 @@ fun DjDashboardContent(
     onNavigateToSongHistory: () -> Unit,
     onSignOff: () -> Unit,
     onLogout: () -> Unit,
+    onMarkNext: (String) -> Unit,
     onMarkSinging: (String) -> Unit,
     onMarkDone: (String) -> Unit
 ) {
@@ -116,6 +119,7 @@ fun DjDashboardContent(
                     QueueItemCard(
                         position = index + 1,
                         entry = entry,
+                        onMarkNext = { onMarkNext(entry.id) },
                         onMarkSinging = { onMarkSinging(entry.id) },
                         onMarkDone = { onMarkDone(entry.id) }
                     )
@@ -133,27 +137,36 @@ fun DjDashboardContent(
 fun QueueItemCard(
     position: Int,
     entry: QueueItem,
+    onMarkNext: () -> Unit,
     onMarkSinging: () -> Unit,
     onMarkDone: () -> Unit
 ) {
-    val isSinging = entry.status == "SINGING"
+    val isSinging = entry.status == QueueItem.STATUS_SINGING
+    val isNext = entry.status == QueueItem.STATUS_NEXT
+    
     val statusColor = when (entry.status) {
-        "SINGING" -> MaterialTheme.colorScheme.primary
-        "DONE" -> MaterialTheme.colorScheme.secondary
+        QueueItem.STATUS_SINGING -> MaterialTheme.colorScheme.primary
+        QueueItem.STATUS_NEXT -> MaterialTheme.colorScheme.tertiary
+        QueueItem.STATUS_DONE -> MaterialTheme.colorScheme.secondary
         else -> MaterialTheme.colorScheme.outline
+    }
+
+    val statusLabel = when (entry.status) {
+        QueueItem.STATUS_NEXT -> "ON DECK"
+        else -> entry.status
     }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .then(
-                if (isSinging) Modifier.border(
+                if (isSinging || isNext) Modifier.border(
                     width = 2.dp,
                     brush = MicQHeroGradient,
                     shape = MaterialTheme.shapes.medium
                 ) else Modifier
             ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isSinging) 8.dp else 2.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isSinging || isNext) 8.dp else 2.dp),
         shape = MaterialTheme.shapes.medium
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -165,7 +178,7 @@ fun QueueItemCard(
                 Text(
                     text = "#$position",
                     style = MaterialTheme.typography.displayLarge,
-                    color = if (isSinging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    color = if (isSinging) MaterialTheme.colorScheme.primary else if (isNext) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface
                 )
                 
                 Surface(
@@ -173,7 +186,7 @@ fun QueueItemCard(
                     shape = MaterialTheme.shapes.extraSmall
                 ) {
                     Text(
-                        text = entry.status,
+                        text = statusLabel,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelMedium,
                         color = statusColor
@@ -210,27 +223,39 @@ fun QueueItemCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (entry.status != "SINGING" && entry.status != "DONE") {
-                    Button(
-                        onClick = onMarkSinging,
-                        modifier = Modifier.weight(1f),
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Icon(Icons.Default.Mic, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("START SINGING")
+                when (entry.status) {
+                    QueueItem.STATUS_WAITING -> {
+                        Button(
+                            onClick = onMarkNext,
+                            modifier = Modifier.weight(1f),
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Icon(Icons.Default.Queue, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("MARK ON DECK")
+                        }
                     }
-                }
-                
-                if (entry.status != "DONE") {
-                    OutlinedButton(
-                        onClick = onMarkDone,
-                        modifier = Modifier.weight(1f),
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("MARK DONE")
+                    QueueItem.STATUS_NEXT -> {
+                        Button(
+                            onClick = onMarkSinging,
+                            modifier = Modifier.weight(1f),
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Icon(Icons.Default.Mic, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("START SINGING")
+                        }
+                    }
+                    QueueItem.STATUS_SINGING -> {
+                        Button(
+                            onClick = onMarkDone,
+                            modifier = Modifier.weight(1f),
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("MARK DONE")
+                        }
                     }
                 }
             }
@@ -264,6 +289,7 @@ fun DjDashboardScreenPreview() {
             onNavigateToSongHistory = {},
             onSignOff = {},
             onLogout = {},
+            onMarkNext = {},
             onMarkSinging = {},
             onMarkDone = {}
         )
