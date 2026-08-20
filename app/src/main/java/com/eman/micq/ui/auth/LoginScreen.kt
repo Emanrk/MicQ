@@ -1,11 +1,9 @@
 package com.eman.micq.ui.auth
 
-
-
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -25,14 +23,16 @@ import com.eman.micq.viewmodel.AuthViewModel
 fun LoginScreen(
     viewModel: AuthViewModel,
     onNavigateToRegister: () -> Unit,
-    onLoginSuccess: (String) -> Unit
+    onLoginSuccess: (String) -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     val authState by viewModel.authState.collectAsState()
 
     LoginContent(
         authState = authState,
         onLogin = { email, password -> viewModel.login(email, password) },
-        onNavigateToRegister = onNavigateToRegister
+        onNavigateToRegister = onNavigateToRegister,
+        onNavigateBack = onNavigateBack
     )
 
     LaunchedEffect(authState) {
@@ -47,7 +47,8 @@ fun LoginScreen(
 fun LoginContent(
     authState: AuthState,
     onLogin: (String, String) -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -56,7 +57,12 @@ fun LoginContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Log In") }
+                title = { Text("MicQ") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
             )
         }
     ) { padding ->
@@ -81,7 +87,7 @@ fun LoginContent(
             TextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email Address") },
+                label = { Text("Email or Username") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
                 colors = TextFieldDefaults.colors(
@@ -130,7 +136,7 @@ fun LoginContent(
                 onClick = onNavigateToRegister,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
-                Text("New staff member? Register here", color = MaterialTheme.colorScheme.secondary)
+                Text("Don't have an account? Sign up", color = MaterialTheme.colorScheme.secondary)
             }
 
             if (authState is AuthState.Loading) {
@@ -161,7 +167,8 @@ fun LoginScreenPreview() {
         LoginContent(
             authState = AuthState.Idle,
             onLogin = { _, _ -> },
-            onNavigateToRegister = {}
+            onNavigateToRegister = {},
+            onNavigateBack = {}
         )
     }
 }

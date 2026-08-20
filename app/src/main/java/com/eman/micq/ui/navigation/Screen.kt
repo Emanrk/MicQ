@@ -4,9 +4,7 @@ sealed class Screen(val route: String) {
     object Splash : Screen("splash")
     object Onboarding : Screen("onboarding")
     object RoleSelection : Screen("role_selection")
-    object Register : Screen("register/{role}") {
-        fun createRoute(role: String) = "register/$role"
-    }
+    object Register : Screen("register")
     object Login : Screen("login")
     object AdminDashboard : Screen("admin_dashboard")
     object DjShift : Screen("dj_shift")

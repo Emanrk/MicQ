@@ -7,14 +7,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.eman.micq.ui.auth.LoginScreen
 import com.eman.micq.ui.auth.RegisterScreen
-import com.eman.micq.ui.auth.RoleSelectionScreen
 import com.eman.micq.ui.dashboards.AdminDashboardScreen
 import com.eman.micq.ui.dashboards.PerformerDashboardScreen
 import com.eman.micq.ui.dashboards.ShiftHistoryScreen
 import com.eman.micq.ui.dashboards.SongHistoryScreen
 import com.eman.micq.ui.dj.DjDashboardScreen
 import com.eman.micq.ui.dj.DjShiftScreen
-import com.eman.micq.ui.onboarding.OnboardingScreen
 import com.eman.micq.ui.onboarding.SplashScreen
 import com.eman.micq.ui.performer.AddToQueueScreen
 import com.eman.micq.viewmodel.AdminActivityViewModel
@@ -35,20 +33,11 @@ fun MicQNavHost(
     ) {
         composable(Screen.Splash.route) {
             SplashScreen(
-                onSplashFinished = {
-                    navController.navigate(Screen.Onboarding.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable(Screen.Onboarding.route) {
-            OnboardingScreen(
-                onOnboardingFinished = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Onboarding.route) { inclusive = true }
-                    }
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route)
+                },
+                onNavigateToRegister = {
+                    navController.navigate(Screen.Register.route)
                 }
             )
         }
@@ -57,7 +46,10 @@ fun MicQNavHost(
             LoginScreen(
                 viewModel = authViewModel,
                 onNavigateToRegister = {
-                    navController.navigate(Screen.RoleSelection.route)
+                    navController.navigate(Screen.Register.route)
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
                 },
                 onLoginSuccess = { role ->
                     val destination = when (role) {
@@ -67,27 +59,20 @@ fun MicQNavHost(
                         else -> Screen.Login.route
                     }
                     navController.navigate(destination) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
                     }
                 }
             )
         }
 
-        composable(Screen.RoleSelection.route) {
-            RoleSelectionScreen(
-                onRoleSelected = { role ->
-                    navController.navigate(Screen.Register.createRoute(role))
-                }
-            )
-        }
-
-        composable(Screen.Register.route) { backStackEntry ->
-            val role = backStackEntry.arguments?.getString("role") ?: "PERFORMER"
+        composable(Screen.Register.route) {
             RegisterScreen(
-                role = role,
                 viewModel = authViewModel,
                 onNavigateBack = { navController.popBackStack() },
-                onRegistrationSuccess = {
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route)
+                },
+                onRegistrationSuccess = { role ->
                     val destination = when (role) {
                         "ADMIN" -> Screen.AdminDashboard.route
                         "DJ" -> Screen.DjShift.route
@@ -95,7 +80,7 @@ fun MicQNavHost(
                         else -> Screen.Login.route
                     }
                     navController.navigate(destination) {
-                        popUpTo(Screen.RoleSelection.route) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
                     }
                 }
             )
@@ -108,7 +93,7 @@ fun MicQNavHost(
                 onNavigateToShiftHistory = { navController.navigate(Screen.ShiftHistory.route) },
                 onLogout = {
                     authViewModel.signOut()
-                    navController.navigate(Screen.Login.route) {
+                    navController.navigate(Screen.Splash.route) {
                         popUpTo(0)
                     }
                 }
@@ -137,7 +122,7 @@ fun MicQNavHost(
                 onNavigateToSongHistory = { navController.navigate(Screen.SongHistory.route) },
                 onLogout = {
                     authViewModel.signOut()
-                    navController.navigate(Screen.Login.route) {
+                    navController.navigate(Screen.Splash.route) {
                         popUpTo(0)
                     }
                 }
@@ -147,7 +132,7 @@ fun MicQNavHost(
         composable(Screen.AddToQueue.route) {
             val queueViewModel: QueueViewModel = hiltViewModel()
             AddToQueueScreen(
-                sessionId = "default_session", // In a real app, this would come from a shared state
+                sessionId = "default_session",
                 viewModel = queueViewModel,
                 onNavigateBack = { navController.popBackStack() }
             )
@@ -160,7 +145,7 @@ fun MicQNavHost(
                 onNavigateToDashboard = { navController.navigate(Screen.DjDashboard.route) },
                 onLogout = {
                     authViewModel.signOut()
-                    navController.navigate(Screen.Login.route) { popUpTo(0) }
+                    navController.navigate(Screen.Splash.route) { popUpTo(0) }
                 }
             )
         }
@@ -174,7 +159,7 @@ fun MicQNavHost(
                 onSignOff = { navController.popBackStack() },
                 onLogout = {
                     authViewModel.signOut()
-                    navController.navigate(Screen.Login.route) { popUpTo(0) }
+                    navController.navigate(Screen.Splash.route) { popUpTo(0) }
                 }
             )
         }
